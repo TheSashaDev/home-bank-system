@@ -24,10 +24,12 @@ jobs:
       
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.4
       
       - name: Build APK
         working-directory: android-webview
-        run: gradle assembleDebug
+        run: gradle assembleDebug --no-daemon
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -50,10 +52,12 @@ jobs:
       
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.4
       
       - name: Build APK
         working-directory: android-scanner
-        run: gradle assembleDebug
+        run: gradle assembleDebug --no-daemon
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
