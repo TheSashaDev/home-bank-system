@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { User, Transaction, Credit, Savings, Debt } from '../types';
+import type { User, Transaction } from '../types';
 import { api } from '../api/client';
 
 export type Screen =
@@ -68,7 +68,7 @@ interface AppState {
   fetchUsers: () => Promise<void>;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   // Initial state
   currentScreen: 'scan',
   loading: false,

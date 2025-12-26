@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
 import { getTransactionDisplayData, formatAmount, formatDate, getTypeLabel } from './transactionDisplay'
-import type { Transaction, TransactionType } from '../types'
+import type { TransactionType } from '../types'
 
 // Feature: home-bank-system, Property 7: Transaction Display Completeness
 // **Validates: Requirements 4.2**

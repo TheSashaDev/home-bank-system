@@ -1,4 +1,4 @@
-import { describe, expect } from 'vitest';
+import { describe } from 'vitest';
 import { test, fc } from '@fast-check/vitest';
 import type { Transaction, TransactionType } from '../types';
 

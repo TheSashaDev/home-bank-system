@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var toneGenerator: ToneGenerator? = null
     
     private val client = OkHttpClient()
-    private val SERVER_URL = "http://45.94.156.61:3001"
+    private val SERVER_URL = "http://45.94.156.61:8081"
     
     private var lastScannedCode: String? = null
     private var lastScanTime: Long = 0

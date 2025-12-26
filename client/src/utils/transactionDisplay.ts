@@ -22,6 +22,7 @@ export function getTypeLabel(type: TransactionType): string {
     case 'deposit': return 'Поповнення'
     case 'withdrawal': return 'Зняття'
     case 'transfer': return 'Переказ'
+    default: return type
   }
 }
 
