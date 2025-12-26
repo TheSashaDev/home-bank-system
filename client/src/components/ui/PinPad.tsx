@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { useState, useCallback } from 'react'
 
 interface PinPadProps {
@@ -23,86 +22,57 @@ export function PinPad({ onComplete, onCancel, maxLength = 4, error }: PinPadPro
     const newPin = pin + key
     setPin(newPin)
 
-    // vibrate on tap if available
-    if (navigator.vibrate) navigator.vibrate(10)
-
     if (newPin.length === maxLength) {
       setTimeout(() => {
         onComplete(newPin)
         setPin('')
-      }, 150)
+      }, 100)
     }
   }, [pin, maxLength, onComplete])
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      {/* PIN dots - larger for tablet */}
-      <div className="flex gap-4 md:gap-6 mb-4">
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex gap-3 mb-2">
         {Array.from({ length: maxLength }).map((_, i) => (
-          <motion.div
+          <div
             key={i}
-            className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 ${
+            className={`w-3 h-3 rounded-full border-2 ${
               i < pin.length
-                ? 'bg-[#ff6b9d] border-[#ff6b9d] shadow-[0_0_12px_rgba(255,107,157,0.6)]'
+                ? 'bg-[#ff6b9d] border-[#ff6b9d]'
                 : 'bg-transparent border-[#3d3d3d]'
             }`}
-            animate={i < pin.length ? { scale: [1, 1.3, 1] } : {}}
-            transition={{ duration: 0.15 }}
           />
         ))}
       </div>
 
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-[#ef4444] text-sm md:text-base"
-        >
-          {error}
-        </motion.p>
-      )}
+      {error && <p className="text-[#ef4444] text-sm">{error}</p>}
 
-      {/* Keypad with 3D effects - larger for tablet */}
-      <div className="grid grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-3 gap-2">
         {keys.map((key, idx) => (
-          <motion.button
+          <button
             key={idx}
             type="button"
             disabled={key === ''}
             onClick={() => handleKey(key)}
             className={`
-              w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28
-              rounded-2xl text-2xl md:text-3xl lg:text-4xl font-semibold
+              w-16 h-14 rounded-xl text-xl font-semibold
               ${key === '' ? 'invisible' : ''}
               ${key === 'del'
-                ? 'bg-gradient-to-b from-[#3d3d3d] to-[#2d2d2d] text-[#6b6b6b] shadow-[0_4px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]'
-                : 'bg-gradient-to-b from-[#3d3d3d] to-[#2d2d2d] text-white shadow-[0_6px_16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                ? 'bg-[#2d2d2d] text-[#6b6b6b]'
+                : 'bg-[#2d2d2d] text-white'
               }
-              disabled:opacity-0
-              border-t border-white/5
-              active:scale-95
+              active:bg-[#3d3d3d]
             `}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ 
-              scale: 0.95, 
-              y: 2,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.3)'
-            }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             {key === 'del' ? '⌫' : key}
-          </motion.button>
+          </button>
         ))}
       </div>
 
       {onCancel && (
-        <motion.button
-          onClick={onCancel}
-          className="mt-4 text-[#6b6b6b] hover:text-white transition-colors text-base md:text-lg py-2 px-4"
-          whileTap={{ scale: 0.95 }}
-        >
+        <button onClick={onCancel} className="mt-2 text-[#6b6b6b] text-sm">
           Скасувати
-        </motion.button>
+        </button>
       )}
     </div>
   )

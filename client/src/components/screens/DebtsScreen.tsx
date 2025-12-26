@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { AmountInput } from '../ui/AmountInput'
 import { PinPad } from '../ui/PinPad'
@@ -11,7 +9,7 @@ import { formatAmount } from '../../utils/transactionDisplay'
 import type { Debt } from '../../types'
 
 type Tab = 'my' | 'tome' | 'requests'
-type Step = 'list' | 'create' | 'pay' | 'respond' | 'success'
+type Step = 'list' | 'create' | 'pay' | 'respond' | 'respond-pin' | 'success'
 
 export function DebtsScreen() {
   const { setScreen, users, fetchUsers, fetchBalance } = useAppStore()
@@ -24,6 +22,7 @@ export function DebtsScreen() {
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null)
   const [amount, setAmount] = useState(0)
   const [description, setDescription] = useState('')
+  const [interestRate, setInterestRate] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
@@ -61,7 +60,7 @@ export function DebtsScreen() {
   const handleRespond = async (accept: boolean, pin: string) => {
     if (!selectedDebt) return
     setLoading(true)
-    const res = await api.respondToDebt(selectedDebt.id, accept, pin)
+    const res = await api.respondToDebt(selectedDebt.id, accept, pin, accept ? interestRate : undefined)
     if (res.success) {
       setSuccessMsg(accept ? 'Позику надано' : 'Запит відхилено')
       setStep('success')
@@ -90,195 +89,226 @@ export function DebtsScreen() {
 
   const activeMyDebts = myDebts.filter(d => d.status === 'accepted')
   const activeDebtsToMe = debtsToMe.filter(d => d.status === 'accepted')
-
   const getUserName = (userId: string) => users.find(u => u.id === userId)?.name || 'Невідомий'
+
+  if (step === 'success') {
+    return (
+      <ATMLayout title="БОРГИ">
+        <div className="text-center">
+          <div className="text-5xl mb-3">✅</div>
+          <h1 className="text-xl font-bold text-white mb-2">Успішно!</h1>
+          <p className="text-[#8b949e] text-sm mb-4">{successMsg}</p>
+          <Button onClick={() => { setStep('list'); fetchAll() }} size="sm">OK</Button>
+        </div>
+      </ATMLayout>
+    )
+  }
+
 
   return (
     <ATMLayout title="БОРГИ">
-      <div className="w-full max-w-md">
-        <AnimatePresence mode="wait">
-          {step === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div className="flex gap-2 mb-6">
-                <Button onClick={() => setTab('my')} variant={tab === 'my' ? 'primary' : 'secondary'} size="sm">
-                  Мої борги {activeMyDebts.length > 0 && `(${activeMyDebts.length})`}
-                </Button>
-                <Button onClick={() => setTab('tome')} variant={tab === 'tome' ? 'primary' : 'secondary'} size="sm">
-                  Мені винні {activeDebtsToMe.length > 0 && `(${activeDebtsToMe.length})`}
-                </Button>
-                <Button onClick={() => setTab('requests')} variant={tab === 'requests' ? 'primary' : 'secondary'} size="sm">
-                  Запити {requests.length > 0 && `(${requests.length})`}
-                </Button>
-              </div>
+      <div className="flex gap-4 w-full max-w-4xl h-full">
+        {/* Left: Tabs and list */}
+        <div className="w-56 flex flex-col">
+          <div className="flex gap-1 mb-2">
+            <button onClick={() => setTab('my')} className={`px-2 py-1 rounded text-xs ${tab === 'my' ? 'bg-[#ff6b9d] text-white' : 'bg-[#21262d] text-[#8b949e]'}`}>
+              Борги {activeMyDebts.length > 0 && `(${activeMyDebts.length})`}
+            </button>
+            <button onClick={() => setTab('tome')} className={`px-2 py-1 rounded text-xs ${tab === 'tome' ? 'bg-[#ff6b9d] text-white' : 'bg-[#21262d] text-[#8b949e]'}`}>
+              Мені {activeDebtsToMe.length > 0 && `(${activeDebtsToMe.length})`}
+            </button>
+            <button onClick={() => setTab('requests')} className={`px-2 py-1 rounded text-xs ${tab === 'requests' ? 'bg-[#ff6b9d] text-white' : 'bg-[#21262d] text-[#8b949e]'}`}>
+              Запити {requests.length > 0 && `(${requests.length})`}
+            </button>
+          </div>
 
-              <Card variant="glass" padding="lg">
-                {tab === 'my' && (
-                  <>
-                    {activeMyDebts.length === 0 ? (
-                      <p className="text-[#8b949e] text-center py-4">Немає боргів</p>
-                    ) : (
-                      <div className="flex flex-col gap-3 mb-4">
-                        {activeMyDebts.map(d => (
-                          <div key={d.id} className="bg-[#21262d] rounded-lg p-4">
-                            <div className="flex justify-between mb-2">
-                              <span className="text-[#8b949e]">Кому</span>
-                              <span className="text-white">{getUserName(d.toUserId)}</span>
-                            </div>
-                            <div className="flex justify-between mb-3">
-                              <span className="text-[#8b949e]">Залишок</span>
-                              <span className="text-[#f85149] font-bold">{formatAmount(d.remainingAmount)}</span>
-                            </div>
-                            <Button onClick={() => { setSelectedDebt(d); setAmount(d.remainingAmount); setStep('pay') }} fullWidth size="sm">
-                              Повернути
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <Button onClick={() => { setSelectedUser(null); setAmount(0); setDescription(''); setStep('create') }} variant="primary" fullWidth>
-                      Попросити в борг
+          <div className="flex flex-col gap-2 flex-1 overflow-hidden">
+            {tab === 'my' && (
+              activeMyDebts.length === 0 ? (
+                <p className="text-[#8b949e] text-xs">Немає боргів</p>
+              ) : (
+                activeMyDebts.slice(0, 3).map(d => (
+                  <div key={d.id} className="bg-[#21262d] rounded-lg p-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[#8b949e]">Кому</span>
+                      <span className="text-white">{getUserName(d.toUserId)}</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-[#8b949e]">Сума</span>
+                      <span className="text-[#f85149] font-bold">{formatAmount(d.remainingAmount)}</span>
+                    </div>
+                    <Button onClick={() => { setSelectedDebt(d); setAmount(d.remainingAmount); setStep('pay') }} fullWidth size="sm">
+                      Повернути
                     </Button>
-                  </>
-                )}
+                  </div>
+                ))
+              )
+            )}
 
-                {tab === 'tome' && (
-                  activeDebtsToMe.length === 0 ? (
-                    <p className="text-[#8b949e] text-center py-4">Ніхто не винен</p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {activeDebtsToMe.map(d => (
-                        <div key={d.id} className="bg-[#21262d] rounded-lg p-4">
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#8b949e]">Хто</span>
-                            <span className="text-white">{getUserName(d.fromUserId)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-[#8b949e]">Сума</span>
-                            <span className="text-[#3fb950] font-bold">{formatAmount(d.remainingAmount)}</span>
-                          </div>
-                        </div>
-                      ))}
+            {tab === 'tome' && (
+              activeDebtsToMe.length === 0 ? (
+                <p className="text-[#8b949e] text-xs">Ніхто не винен</p>
+              ) : (
+                activeDebtsToMe.slice(0, 3).map(d => (
+                  <div key={d.id} className="bg-[#21262d] rounded-lg p-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[#8b949e]">Хто</span>
+                      <span className="text-white">{getUserName(d.fromUserId)}</span>
                     </div>
-                  )
-                )}
+                    <div className="flex justify-between">
+                      <span className="text-[#8b949e]">Сума</span>
+                      <span className="text-[#3fb950] font-bold">{formatAmount(d.remainingAmount)}</span>
+                    </div>
+                  </div>
+                ))
+              )
+            )}
 
-                {tab === 'requests' && (
-                  requests.length === 0 ? (
-                    <p className="text-[#8b949e] text-center py-4">Немає запитів</p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {requests.map(d => (
-                        <div key={d.id} className="bg-[#21262d] rounded-lg p-4">
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#8b949e]">Від</span>
-                            <span className="text-white">{getUserName(d.fromUserId)}</span>
-                          </div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#8b949e]">Сума</span>
-                            <span className="text-[#ff6b9d] font-bold">{formatAmount(d.amount)}</span>
-                          </div>
-                          {d.description && <p className="text-[#8b949e] text-sm mb-3">{d.description}</p>}
-                          <div className="flex gap-2">
-                            <Button onClick={() => { setSelectedDebt(d); setStep('respond') }} variant="primary" fullWidth size="sm">
-                              Позичити
-                            </Button>
-                            <Button onClick={() => { setSelectedDebt(d); handleRespond(false, '') }} variant="secondary" fullWidth size="sm">
-                              Відхилити
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+            {tab === 'requests' && (
+              requests.length === 0 ? (
+                <p className="text-[#8b949e] text-xs">Немає запитів</p>
+              ) : (
+                requests.slice(0, 2).map(d => (
+                  <div key={d.id} className="bg-[#21262d] rounded-lg p-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[#8b949e]">Від</span>
+                      <span className="text-white">{getUserName(d.fromUserId)}</span>
                     </div>
-                  )
-                )}
-              </Card>
-            </motion.div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-[#8b949e]">Сума</span>
+                      <span className="text-[#ff6b9d] font-bold">{formatAmount(d.amount)}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button onClick={() => { setSelectedDebt(d); setInterestRate(0); setStep('respond') }} size="sm" fullWidth>Дати</Button>
+                      <Button onClick={() => { setSelectedDebt(d); handleRespond(false, '') }} variant="secondary" size="sm" fullWidth>Ні</Button>
+                    </div>
+                  </div>
+                ))
+              )
+            )}
+          </div>
+
+          {tab === 'my' && (
+            <Button onClick={() => { setSelectedUser(null); setAmount(0); setDescription(''); setStep('create') }} variant="primary" fullWidth size="sm" className="mt-2">
+              Попросити в борг
+            </Button>
+          )}
+        </div>
+
+
+        {/* Center: Current step */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          {step === 'list' && (
+            <div className="text-center text-[#8b949e]">
+              <p className="text-sm">Оберіть борг або запит</p>
+            </div>
           )}
 
           {step === 'create' && (
-            <motion.div key="create" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h1 className="text-3xl font-bold text-white mb-6 text-center">Попросити в борг</h1>
-              <Card variant="glass" padding="lg">
-                {!selectedUser ? (
-                  <div className="flex flex-col gap-3">
-                    <p className="text-[#8b949e] text-center mb-2">Оберіть у кого позичити</p>
-                    {users.map(u => (
-                      <Button key={u.id} onClick={() => setSelectedUser(u)} variant="secondary" fullWidth>
+            <div className="w-full max-w-xs">
+              {!selectedUser ? (
+                <>
+                  <p className="text-white text-center text-sm mb-2">У кого позичити?</p>
+                  <div className="flex flex-col gap-1">
+                    {users.slice(0, 5).map(u => (
+                      <button key={u.id} onClick={() => setSelectedUser(u)} className="px-3 py-2 rounded-lg bg-[#21262d] text-white text-sm text-left">
                         {u.name}
-                      </Button>
+                      </button>
                     ))}
                   </div>
-                ) : (
-                  <>
-                    <p className="text-[#8b949e] text-center mb-4">Позичити у {selectedUser.name}</p>
-                    <AmountInput value={amount} onChange={setAmount} label="Сума" />
-                    <input
-                      type="text"
-                      placeholder="Причина (необов'язково)"
-                      value={description}
-                      onChange={e => setDescription(e.target.value)}
-                      className="w-full bg-[#21262d] border border-[#30363d] rounded-lg px-4 py-3 text-white mt-4"
-                    />
-                    {error && <p className="text-[#f85149] text-center mt-4">{error}</p>}
-                    <Button onClick={handleCreateDebt} fullWidth size="lg" className="mt-6" disabled={loading || amount <= 0}>
-                      {loading ? 'Відправка...' : 'Відправити запит'}
-                    </Button>
-                  </>
-                )}
-              </Card>
-            </motion.div>
+                </>
+              ) : (
+                <>
+                  <p className="text-white text-center text-sm mb-2">Позичити у {selectedUser.name}</p>
+                  <AmountInput value={amount} onChange={setAmount} label="Сума" />
+                  <input
+                    type="text"
+                    placeholder="Причина"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    className="w-full bg-[#21262d] border border-[#30363d] rounded-lg px-3 py-2 text-white text-sm mt-2"
+                  />
+                  {error && <p className="text-[#f85149] text-center text-xs mt-2">{error}</p>}
+                </>
+              )}
+            </div>
           )}
 
           {step === 'respond' && selectedDebt && (
-            <motion.div key="respond" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h1 className="text-3xl font-bold text-white mb-2 text-center">Підтвердіть PIN</h1>
-              <p className="text-[#8b949e] text-center mb-6">Позичити {formatAmount(selectedDebt.amount)}</p>
-              <Card variant="glass" padding="lg">
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <motion.div className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} />
-                  </div>
-                ) : (
-                  <PinPad onComplete={(pin) => handleRespond(true, pin)} error={error || undefined} />
-                )}
-              </Card>
-            </motion.div>
+            <div className="w-full max-w-xs text-center">
+              <p className="text-white text-sm mb-2">Позичити {formatAmount(selectedDebt.amount)}</p>
+              <p className="text-[#8b949e] text-xs mb-3">Встановіть відсоток (необов'язково)</p>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {[0, 5, 10, 15, 20].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setInterestRate(r)}
+                    className={`px-3 py-2 rounded-lg text-sm ${interestRate === r ? 'bg-[#ff6b9d] text-white' : 'bg-[#21262d] text-white'}`}
+                  >
+                    {r}%
+                  </button>
+                ))}
+              </div>
+              {interestRate > 0 && (
+                <p className="text-[#8b949e] text-xs mb-3">
+                  Повернути: {formatAmount(Math.round(selectedDebt.amount * (1 + interestRate / 100)))}
+                </p>
+              )}
+              <Button onClick={() => setStep('respond-pin')} fullWidth>Далі</Button>
+            </div>
+          )}
+
+          {step === 'respond-pin' && selectedDebt && (
+            <div className="w-full max-w-xs">
+              <p className="text-white text-center text-sm mb-1">Підтвердіть PIN</p>
+              <p className="text-[#8b949e] text-center text-xs mb-3">
+                Позичити {formatAmount(selectedDebt.amount)}{interestRate > 0 ? ` (+${interestRate}%)` : ''}
+              </p>
+              {loading ? (
+                <div className="flex justify-center py-4">
+                  <div className="w-8 h-8 border-3 border-[#ff6b9d] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <PinPad onComplete={(pin) => handleRespond(true, pin)} error={error || undefined} />
+              )}
+            </div>
           )}
 
           {step === 'pay' && selectedDebt && (
-            <motion.div key="pay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h1 className="text-3xl font-bold text-white mb-6 text-center">Повернення боргу</h1>
-              <Card variant="glass" padding="lg">
-                <AmountInput value={amount} onChange={setAmount} maxAmount={selectedDebt.remainingAmount} label={`Залишок: ${formatAmount(selectedDebt.remainingAmount)}`} />
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <motion.div className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} />
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-[#8b949e] text-center my-4">Введіть PIN</p>
+            <div className="w-full max-w-xs">
+              <p className="text-white text-center text-sm mb-2">Повернення боргу</p>
+              <AmountInput value={amount} onChange={setAmount} maxAmount={selectedDebt.remainingAmount} label={`Залишок: ${formatAmount(selectedDebt.remainingAmount)}`} />
+              {amount > 0 && (
+                <>
+                  <p className="text-[#8b949e] text-center text-xs my-2">Введіть PIN</p>
+                  {loading ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-8 h-8 border-3 border-[#ff6b9d] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
                     <PinPad onComplete={handlePayDebt} error={error || undefined} />
-                  </>
-                )}
-              </Card>
-            </motion.div>
+                  )}
+                </>
+              )}
+            </div>
           )}
+        </div>
 
-          {step === 'success' && (
-            <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="text-8xl mb-6">✅</motion.div>
-              <h1 className="text-3xl font-bold text-white mb-2">Успішно!</h1>
-              <p className="text-[#8b949e] mb-8">{successMsg}</p>
-              <Button onClick={() => { setStep('list'); fetchAll() }} fullWidth size="lg">OK</Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        {step !== 'success' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 text-center">
-            <Button onClick={() => step === 'list' ? setScreen('main') : setStep('list')} variant="ghost">← Назад</Button>
-          </motion.div>
-        )}
+        {/* Right: Actions */}
+        <div className="w-28 flex flex-col justify-between">
+          <div />
+          <div className="flex flex-col gap-2">
+            {step === 'create' && selectedUser && amount > 0 && (
+              <Button onClick={handleCreateDebt} size="sm" disabled={loading}>
+                {loading ? '...' : 'Відправити'}
+              </Button>
+            )}
+            <Button onClick={() => step === 'list' ? setScreen('main') : setStep('list')} variant="ghost" size="sm">
+              ← Назад
+            </Button>
+          </div>
+        </div>
       </div>
     </ATMLayout>
   )

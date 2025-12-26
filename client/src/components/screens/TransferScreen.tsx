@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card } from '../ui/Card'
-import { Button } from '../ui/Button'
-import { AmountInput } from '../ui/AmountInput'
-import { PinPad } from '../ui/PinPad'
 import { ATMLayout } from '../ui/ATMLayout'
+import { PinPad } from '../ui/PinPad'
 import { useAppStore } from '../../store/appStore'
 import { api } from '../../api/client'
-import { formatAmount } from '../../utils/transactionDisplay'
 
 type Step = 'select' | 'amount' | 'confirm' | 'success'
 
@@ -15,195 +10,128 @@ export function TransferScreen() {
   const { user, users, balance, fetchUsers, fetchBalance, setScreen } = useAppStore()
   const [step, setStep] = useState<Step>('select')
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null)
-  const [amount, setAmount] = useState(0)
+  const [amount, setAmount] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchUsers()
     fetchBalance()
-  }, [fetchUsers, fetchBalance])
+  }, [])
 
-  const handleSelectUser = (u: { id: string; name: string }) => {
-    setSelectedUser(u)
-    setStep('amount')
-    if (navigator.vibrate) navigator.vibrate(20)
-  }
-
-  const handleAmountConfirm = () => {
-    if (amount <= 0) {
-      setError('Введіть суму')
-      return
-    }
-    if (balance !== null && amount > balance) {
-      setError('Недостатньо коштів')
-      return
-    }
-    setError(null)
-    setStep('confirm')
-  }
+  const filteredUsers = users.filter(u => u.id !== user?.id)
+  const amountNum = parseInt(amount) * 100 || 0
 
   const handlePinComplete = async (pin: string) => {
     if (!selectedUser) return
-
     setLoading(true)
-    setError(null)
-
-    const res = await api.transfer(selectedUser.id, amount, pin)
-
+    const res = await api.transfer(selectedUser.id, amountNum, pin)
     if (res.success) {
-      if (navigator.vibrate) navigator.vibrate(100)
       setStep('success')
       fetchBalance()
     } else {
-      setError(res.error || 'Помилка переказу')
-      if (navigator.vibrate) navigator.vibrate([50, 50, 50])
+      setError(res.error || 'Помилка')
     }
-
     setLoading(false)
   }
 
-  const handleBack = () => {
-    if (step === 'amount') setStep('select')
-    else if (step === 'confirm') setStep('amount')
-    else setScreen('main')
-  }
-
-  const filteredUsers = users.filter(u => u.id !== user?.id)
-
-  const getTitle = () => {
-    switch (step) {
-      case 'select': return 'ПЕРЕКАЗ'
-      case 'amount': return 'СУМА'
-      case 'confirm': return 'ПІДТВЕРДЖЕННЯ'
-      case 'success': return 'УСПІХ'
-    }
+  if (step === 'success') {
+    return (
+      <ATMLayout title="УСПІХ">
+        <div className="text-center">
+          <div className="text-5xl mb-4">✅</div>
+          <h1 className="text-xl font-bold text-white mb-2">Переказ виконано!</h1>
+          <p className="text-[#8b949e] text-sm mb-4">{amount} ₴ → {selectedUser?.name}</p>
+          <button onClick={() => setScreen('main')} className="px-6 py-2 rounded-lg bg-[#ff6b9d] text-white font-bold">
+            До меню
+          </button>
+        </div>
+      </ATMLayout>
+    )
   }
 
   return (
-    <ATMLayout title={getTitle()}>
-      <div className="w-full max-w-md">
-        <AnimatePresence mode="wait">
-          {step === 'select' && (
-            <motion.div
-              key="select"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
-              <h1 className="text-3xl font-bold text-white mb-6 text-center">Оберіть отримувача</h1>
-              <Card variant="glass" padding="md">
-                <div className="flex flex-col gap-3">
-                  {filteredUsers.length === 0 ? (
-                    <p className="text-[#8b949e] text-center py-4">Немає отримувачів</p>
-                  ) : (
-                    filteredUsers.map(u => (
-                      <Button
-                        key={u.id}
-                        onClick={() => handleSelectUser(u)}
-                        variant="secondary"
-                        fullWidth
-                        className="justify-between"
-                      >
-                        <span>{u.name}</span>
-                        <span className="text-[#484f58] text-sm">*{u.cardNumber}</span>
-                      </Button>
-                    ))
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {step === 'amount' && (
-            <motion.div
-              key="amount"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
-              <h1 className="text-3xl font-bold text-white mb-2 text-center">Сума переказу</h1>
-              <p className="text-[#8b949e] text-center mb-6">для {selectedUser?.name}</p>
-              <Card variant="glass" padding="lg">
-                <AmountInput
-                  value={amount}
-                  onChange={setAmount}
-                  maxAmount={balance ?? undefined}
-                  label={`Доступно: ${formatAmount(balance ?? 0)}`}
-                />
-                {error && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#f85149] text-center mt-4">
-                    {error}
-                  </motion.p>
-                )}
-                <Button onClick={handleAmountConfirm} fullWidth size="lg" className="mt-6">
-                  Далі
-                </Button>
-              </Card>
-            </motion.div>
-          )}
-
-          {step === 'confirm' && (
-            <motion.div
-              key="confirm"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
-              <h1 className="text-3xl font-bold text-white mb-2 text-center">Підтвердіть PIN</h1>
-              <p className="text-[#8b949e] text-center mb-6">
-                {formatAmount(amount)} → {selectedUser?.name}
-              </p>
-              <Card variant="glass" padding="lg">
-                {loading ? (
-                  <div className="flex flex-col items-center gap-4 py-8">
-                    <motion.div
-                      className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    />
-                    <p className="text-[#8b949e]">Обробка...</p>
-                  </div>
-                ) : (
-                  <PinPad onComplete={handlePinComplete} error={error || undefined} />
-                )}
-              </Card>
-            </motion.div>
-          )}
-
-          {step === 'success' && (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                className="text-8xl mb-6"
+    <ATMLayout title="ПЕРЕКАЗ">
+      <div className="flex gap-4 w-full max-w-4xl h-full">
+        {/* Left: User list */}
+        <div className="w-48 flex flex-col">
+          <p className="text-[#8b949e] text-xs mb-2">Отримувач:</p>
+          <div className="flex flex-col gap-1 overflow-hidden">
+            {filteredUsers.slice(0, 6).map(u => (
+              <button
+                key={u.id}
+                onClick={() => { setSelectedUser(u); setStep('amount') }}
+                className={`text-left px-3 py-2 rounded-lg text-sm ${
+                  selectedUser?.id === u.id ? 'bg-[#ff6b9d] text-white' : 'bg-[#21262d] text-white'
+                }`}
               >
-                ✅
-              </motion.div>
-              <h1 className="text-3xl font-bold text-white mb-2">Успішно!</h1>
-              <p className="text-[#8b949e] mb-8">
-                {formatAmount(amount)} переказано на рахунок {selectedUser?.name}
-              </p>
-              <Button onClick={() => setScreen('main')} fullWidth size="lg">
-                До меню
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {u.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {step !== 'success' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 text-center">
-            <Button onClick={handleBack} variant="ghost">
-              ← Назад
-            </Button>
-          </motion.div>
-        )}
+        {/* Center: Amount */}
+        <div className="flex-1 flex flex-col items-center">
+          <div className="text-3xl font-bold text-white mb-1">{amount || '0'} ₴</div>
+          <p className="text-[#8b949e] text-xs mb-3">Макс: {((balance || 0) / 100).toFixed(0)} ₴</p>
+          
+          {step === 'confirm' ? (
+            loading ? (
+              <div className="w-8 h-8 border-3 border-[#ff6b9d] border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <PinPad onComplete={handlePinComplete} error={error || undefined} />
+            )
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {['1','2','3','4','5','6','7','8','9','00','0','⌫'].map(k => (
+                <button
+                  key={k}
+                  onClick={() => {
+                    if (k === '⌫') setAmount(a => a.slice(0,-1))
+                    else if (amount.length < 6) setAmount(a => a + k)
+                  }}
+                  className="w-12 h-10 rounded-lg bg-[#21262d] text-white text-lg"
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {error && step !== 'confirm' && <p className="text-red-500 text-xs mt-2">{error}</p>}
+        </div>
+
+        {/* Right: Actions */}
+        <div className="w-32 flex flex-col justify-between">
+          <div>
+            {selectedUser && (
+              <div className="text-xs text-[#8b949e] mb-2">
+                Кому: <span className="text-white">{selectedUser.name}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            {step === 'amount' && selectedUser && amountNum > 0 && (
+              <button
+                onClick={() => {
+                  if (amountNum > (balance || 0)) {
+                    setError('Недостатньо коштів')
+                  } else {
+                    setError(null)
+                    setStep('confirm')
+                  }
+                }}
+                className="py-2 rounded-lg bg-[#ff6b9d] text-white text-sm font-bold"
+              >
+                Далі
+              </button>
+            )}
+            <button onClick={() => setScreen('main')} className="py-2 rounded-lg bg-[#21262d] text-[#8b949e] text-sm">
+              Назад
+            </button>
+          </div>
+        </div>
       </div>
     </ATMLayout>
   )

@@ -25,26 +25,27 @@ CREATE TABLE IF NOT EXISTS transactions (
   FOREIGN KEY (to_user_id) REFERENCES users(id)
 );
 
--- Кредити
+-- Кредити (8% в тиждень)
 CREATE TABLE IF NOT EXISTS credits (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   amount INTEGER NOT NULL,
   remaining_amount INTEGER NOT NULL,
-  interest_rate REAL NOT NULL DEFAULT 0.15,
-  monthly_payment INTEGER NOT NULL,
+  interest_rate REAL NOT NULL DEFAULT 0.08,
+  weeks INTEGER NOT NULL DEFAULT 4,
+  weekly_payment INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paid', 'overdue')),
   due_date INTEGER NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Депозити (вклади)
+-- Депозити (6% в місяць)
 CREATE TABLE IF NOT EXISTS savings (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   amount INTEGER NOT NULL DEFAULT 0,
-  interest_rate REAL NOT NULL DEFAULT 0.08,
+  interest_rate REAL NOT NULL DEFAULT 0.06,
   last_interest_date INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
   created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
@@ -57,11 +58,25 @@ CREATE TABLE IF NOT EXISTS debts (
   to_user_id TEXT NOT NULL,
   amount INTEGER NOT NULL,
   remaining_amount INTEGER NOT NULL,
+  interest_rate REAL NOT NULL DEFAULT 0,
   description TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'paid', 'rejected')),
   created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (from_user_id) REFERENCES users(id),
   FOREIGN KEY (to_user_id) REFERENCES users(id)
+);
+
+-- Запити на вивід грошей
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  card_number TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  admin_comment TEXT,
+  created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+  processed_at INTEGER,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_transactions_from ON transactions(from_user_id);
@@ -71,3 +86,4 @@ CREATE INDEX IF NOT EXISTS idx_credits_user ON credits(user_id);
 CREATE INDEX IF NOT EXISTS idx_savings_user ON savings(user_id);
 CREATE INDEX IF NOT EXISTS idx_debts_from ON debts(from_user_id);
 CREATE INDEX IF NOT EXISTS idx_debts_to ON debts(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_withdrawal_user ON withdrawal_requests(user_id);

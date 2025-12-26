@@ -127,15 +127,77 @@ class ApiClient {
     return this.request('/admin/users');
   }
 
+  async blockUser(userId: string, blocked: boolean): Promise<ApiResponse<void>> {
+    return this.request('/admin/block-user', {
+      method: 'POST',
+      body: JSON.stringify({ userId, blocked }),
+    });
+  }
+
+  async deleteUser(userId: string): Promise<ApiResponse<void>> {
+    return this.request(`/admin/user/${userId}`, { method: 'DELETE' });
+  }
+
+  async resetPin(userId: string, newPin: string): Promise<ApiResponse<void>> {
+    return this.request('/admin/reset-pin', {
+      method: 'POST',
+      body: JSON.stringify({ userId, newPin }),
+    });
+  }
+
+  async adminWithdraw(userId: string, amount: number): Promise<ApiResponse<{ transactionId: string; newBalance: number }>> {
+    return this.request('/admin/withdraw', {
+      method: 'POST',
+      body: JSON.stringify({ userId, amount }),
+    });
+  }
+
+  async getStats(): Promise<ApiResponse<{
+    totalUsers: number;
+    totalBalance: number;
+    totalCredits: number;
+    totalSavings: number;
+    totalDebts: number;
+    txToday: number;
+  }>> {
+    return this.request('/admin/stats');
+  }
+
+  async getAllTransactions(): Promise<ApiResponse<any[]>> {
+    return this.request('/admin/transactions');
+  }
+
+  async getAllCredits(): Promise<ApiResponse<any[]>> {
+    return this.request('/admin/credits');
+  }
+
+  async getAllDebts(): Promise<ApiResponse<any[]>> {
+    return this.request('/admin/debts');
+  }
+
+  async forgiveCredit(creditId: string): Promise<ApiResponse<void>> {
+    return this.request('/admin/forgive-credit', {
+      method: 'POST',
+      body: JSON.stringify({ creditId }),
+    });
+  }
+
+  async forgiveDebt(debtId: string): Promise<ApiResponse<void>> {
+    return this.request('/admin/forgive-debt', {
+      method: 'POST',
+      body: JSON.stringify({ debtId }),
+    });
+  }
+
   // Credits
-  async takeCredit(amount: number, months: number, pin: string): Promise<ApiResponse<{
-    credit: Credit;
-    monthlyPayment: number;
+  async takeCredit(amount: number, weeks: number, pin: string): Promise<ApiResponse<{
+    creditId: string;
+    weeklyPayment: number;
     totalAmount: number;
   }>> {
     return this.request('/credits/take', {
       method: 'POST',
-      body: JSON.stringify({ amount, months, pin }),
+      body: JSON.stringify({ amount, weeks, pin }),
     });
   }
 
@@ -187,10 +249,10 @@ class ApiClient {
     });
   }
 
-  async respondToDebt(debtId: string, accept: boolean, pin: string): Promise<ApiResponse<Debt>> {
+  async respondToDebt(debtId: string, accept: boolean, pin: string, interestRate?: number): Promise<ApiResponse<Debt>> {
     return this.request('/debts/respond', {
       method: 'POST',
-      body: JSON.stringify({ debtId, accept, pin }),
+      body: JSON.stringify({ debtId, accept, pin, interestRate }),
     });
   }
 
@@ -215,6 +277,29 @@ class ApiClient {
 
   async getDebtRequests(): Promise<ApiResponse<Debt[]>> {
     return this.request('/debts/requests');
+  }
+
+  // Withdrawals
+  async createWithdrawal(amount: number, cardNumber: string, pin: string): Promise<ApiResponse<{ id: string }>> {
+    return this.request('/withdrawals/create', {
+      method: 'POST',
+      body: JSON.stringify({ amount, cardNumber, pin }),
+    });
+  }
+
+  async getMyWithdrawals(): Promise<ApiResponse<any[]>> {
+    return this.request('/withdrawals/my');
+  }
+
+  async getAllWithdrawals(): Promise<ApiResponse<any[]>> {
+    return this.request('/withdrawals/all');
+  }
+
+  async processWithdrawal(requestId: string, approve: boolean, comment?: string): Promise<ApiResponse<void>> {
+    return this.request('/withdrawals/process', {
+      method: 'POST',
+      body: JSON.stringify({ requestId, approve, comment }),
+    });
   }
 }
 

@@ -47,7 +47,7 @@ router.post('/create', (req: AuthRequest, res: Response) => {
 });
 
 router.post('/respond', (req: AuthRequest, res: Response) => {
-  const { debtId, accept, pin } = req.body;
+  const { debtId, accept, pin, interestRate } = req.body;
   const userId = req.user!.userId;
 
   if (!debtId || accept === undefined || !pin) {
@@ -76,22 +76,26 @@ router.post('/respond', (req: AuthRequest, res: Response) => {
   }
 
   if (accept) {
-    // Не можна давати в борг кредитні гроші
     const availableBalance = getAvailableBalance(userId);
     if (availableBalance < debt.amount) {
       return res.status(400).json({ success: false, error: 'Недостатньо власних коштів' });
     }
+
+    // Розрахунок суми з відсотками
+    const rate = interestRate || 0;
+    const totalWithInterest = Math.round(debt.amount * (1 + rate / 100));
 
     const txId = crypto.randomUUID();
 
     const acceptDebt = db.transaction(() => {
       db.prepare('UPDATE users SET balance = balance - ? WHERE id = ?').run(debt.amount, userId);
       db.prepare('UPDATE users SET balance = balance + ? WHERE id = ?').run(debt.amount, debt.from_user_id);
-      db.prepare('UPDATE debts SET status = ? WHERE id = ?').run('accepted', debtId);
+      db.prepare('UPDATE debts SET status = ?, interest_rate = ?, remaining_amount = ? WHERE id = ?')
+        .run('accepted', rate / 100, totalWithInterest, debtId);
       db.prepare(`
         INSERT INTO transactions (id, from_user_id, to_user_id, amount, type, description)
         VALUES (?, ?, ?, ?, 'transfer', ?)
-      `).run(txId, userId, debt.from_user_id, debt.amount, 'Позика');
+      `).run(txId, userId, debt.from_user_id, debt.amount, `Позика${rate > 0 ? ` (${rate}%)` : ''}`);
     });
 
     acceptDebt();

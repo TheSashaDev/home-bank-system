@@ -9,6 +9,7 @@ import creditsRouter from './controllers/credits.js';
 import savingsRouter from './controllers/savings.js';
 import debtsRouter from './controllers/debts.js';
 import scannerRouter from './controllers/scanner.js';
+import withdrawalsRouter from './controllers/withdrawals.js';
 import { initWebSocket } from './websocket.js';
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/credits', creditsRouter);
 app.use('/api/savings', savingsRouter);
 app.use('/api/debts', debtsRouter);
 app.use('/api/scanner', scannerRouter);
+app.use('/api/withdrawals', withdrawalsRouter);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

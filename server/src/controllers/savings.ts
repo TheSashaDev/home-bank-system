@@ -13,7 +13,8 @@ import {
 const router = Router();
 router.use(authMiddleware);
 
-const DEFAULT_SAVINGS_RATE = 0.08;
+// 6% в місяць
+const DEFAULT_SAVINGS_RATE = 0.06;
 
 function getOrCreateSavings(userId: string): SavingsRow {
   let savings = db.prepare('SELECT * FROM savings WHERE user_id = ?').get(userId) as SavingsRow | undefined;
@@ -36,7 +37,8 @@ function accrueInterest(savings: SavingsRow): number {
   
   if (daysSinceLastInterest < 1 || savings.amount <= 0) return 0;
   
-  const dailyRate = savings.interest_rate / 365;
+  // 6% в місяць = ~0.2% в день
+  const dailyRate = savings.interest_rate / 30;
   const interest = Math.floor(savings.amount * dailyRate * Math.floor(daysSinceLastInterest));
   
   if (interest > 0) {

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Card } from '../ui/Card'
 import { PinPad } from '../ui/PinPad'
 import { ATMLayout } from '../ui/ATMLayout'
 import { useAppStore } from '../../store/appStore'
@@ -28,8 +26,7 @@ export function PinScreen() {
       setPendingQrData(null)
       setScreen('main')
     } else {
-      setError(res.error || 'Помилка авторизації')
-      if (navigator.vibrate) navigator.vibrate([50, 50, 50])
+      setError(res.error || 'Помилка')
     }
 
     setLoading(false)
@@ -42,25 +39,17 @@ export function PinScreen() {
 
   return (
     <ATMLayout title="АВТОРИЗАЦІЯ">
-      <div className="w-full max-w-md">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-3xl font-bold text-white mb-2">Введіть PIN</h1>
-          <p className="text-[#8b949e]">4-значний код вашої картки</p>
-        </motion.div>
+      <div className="w-full max-w-xs">
+        <div className="text-center mb-4">
+          <h1 className="text-xl font-bold text-white">Введіть PIN</h1>
+          <p className="text-[#8b949e] text-sm">4-значний код</p>
+        </div>
 
-        <Card variant="glass" padding="lg">
+        <div className="bg-[#161b22] rounded-xl p-4 border border-[#30363d]">
           {loading ? (
-            <div className="flex flex-col items-center gap-4 py-8">
-              <motion.div
-                className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              />
-              <p className="text-[#8b949e]">Перевірка...</p>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <div className="w-8 h-8 border-3 border-[#ff6b9d] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[#8b949e] text-sm">Перевірка...</p>
             </div>
           ) : (
             <PinPad
@@ -69,7 +58,7 @@ export function PinScreen() {
               error={error || undefined}
             />
           )}
-        </Card>
+        </div>
       </div>
     </ATMLayout>
   )

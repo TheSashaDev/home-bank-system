@@ -13,9 +13,14 @@ export type Screen =
   | 'admin-deposit'
   | 'admin-create'
   | 'admin-users'
+  | 'admin-transactions'
+  | 'admin-credits'
+  | 'admin-debts'
+  | 'admin-withdrawals'
   | 'credits'
   | 'savings'
-  | 'debts';
+  | 'debts'
+  | 'withdraw';
 
 interface ScannedCard {
   id: string;
