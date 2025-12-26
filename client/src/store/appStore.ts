@@ -22,6 +22,7 @@ interface ScannedCard {
   name: string;
   cardNumber: string;
   balance: number;
+  qrData: string;
 }
 
 interface AppState {

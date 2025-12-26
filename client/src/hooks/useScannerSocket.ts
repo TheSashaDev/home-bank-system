@@ -9,6 +9,7 @@ interface ScanEvent {
     cardNumber: string;
     balance: number;
   };
+  qrData: string;
   timestamp: number;
 }
 
@@ -34,9 +35,8 @@ export function useScannerSocket() {
         const data = JSON.parse(event.data) as ScanEvent;
         if (data.type === 'card_scanned') {
           playNotificationSound();
-          setScannedCard(data.user);
+          setScannedCard({ ...data.user, qrData: data.qrData });
           
-          // Auto-clear after 10 seconds
           setTimeout(() => clearScannedCard(), 10000);
         }
       } catch (e) {

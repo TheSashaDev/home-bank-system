@@ -34,6 +34,7 @@ router.post('/scan', (req, res) => {
       cardNumber: userData.cardNumber,
       balance: userData.balance
     },
+    qrData: qrData,
     timestamp: Date.now()
   });
 

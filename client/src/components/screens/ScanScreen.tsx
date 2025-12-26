@@ -36,7 +36,7 @@ export function ScanScreen() {
 
             <button
               onClick={() => {
-                setPendingQrData(`HOMEBANK:${scannedCard.id}`)
+                setPendingQrData(scannedCard.qrData)
                 setScreen('pin')
               }}
               className="w-full mt-6 py-4 rounded-xl font-bold text-lg text-white"
