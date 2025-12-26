@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+/* Monobank-inspired dark theme */
+@theme {
+  /* Primary colors - Monobank black/dark */
+  --color-mono-black: #000000;
+  --color-mono-dark: #1a1a1a;
+  --color-mono-gray: #2d2d2d;
+  --color-mono-light: #3d3d3d;
+  
+  /* Accent colors - Monobank pink/magenta gradient */
+  --color-mono-pink: #ff6b9d;
+  --color-mono-magenta: #c44569;
+  --color-mono-purple: #8b5cf6;
+  --color-mono-violet: #6366f1;
+  
+  /* Success/Error */
+  --color-mono-green: #10b981;
+  --color-mono-red: #ef4444;
+  --color-mono-yellow: #f59e0b;
+  
+  /* Text colors */
+  --color-mono-text: #ffffff;
+  --color-mono-text-secondary: #a0a0a0;
+  --color-mono-text-muted: #6b6b6b;
+  
+  /* Gradients */
+  --gradient-mono-primary: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+  --gradient-mono-dark: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+  --gradient-mono-card: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+  --gradient-mono-glow: linear-gradient(135deg, rgba(255, 107, 157, 0.3) 0%, rgba(196, 69, 105, 0.1) 100%);
+  
+  /* Shadows */
+  --shadow-mono-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-mono-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-mono-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-mono-glow: 0 0 20px rgba(255, 107, 157, 0.3);
+  --shadow-mono-glow-lg: 0 0 40px rgba(255, 107, 157, 0.4);
+  
+  /* Border radius */
+  --radius-mono-sm: 8px;
+  --radius-mono-md: 12px;
+  --radius-mono-lg: 16px;
+  --radius-mono-xl: 24px;
+  --radius-mono-full: 9999px;
+}
+
+:root {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: var(--color-mono-text);
+  background-color: var(--color-mono-black);
+  
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Prevent text selection on touch */
+  -webkit-user-select: none;
+  user-select: none;
+  
+  /* Prevent zoom on double tap */
+  touch-action: manipulation;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--gradient-mono-dark);
+  
+  /* Prevent pull-to-refresh */
+  overscroll-behavior: none;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(255, 107, 157, 0.3);
+  color: white;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-mono-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mono-gray);
+  border-radius: var(--radius-mono-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mono-light);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--color-mono-pink);
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap highlight */
+* {
+  -webkit-tap-highlight-color: rgba(255, 107, 157, 0.2);
+}
+
+/* Utility classes for Monobank theme */
+.mono-gradient-bg {
+  background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+}
+
+.mono-gradient-primary {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+}
+
+.mono-gradient-card {
+  background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+}
+
+.mono-glow {
+  box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+}
+
+.mono-glow-lg {
+  box-shadow: 0 0 40px rgba(255, 107, 157, 0.4);
+}
+
+.mono-text-gradient {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.mono-glass {
+  background: rgba(45, 45, 45, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Card hover glow effect */
+.mono-card-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.mono-card-hover:hover {
+  box-shadow: 0 0 30px rgba(255, 107, 157, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Tablet-optimized styles */
+@media (min-width: 768px) {
+  :root {
+    font-size: 18px;
+  }
+  
+  /* Larger touch targets for tablet */
+  button, 
+  [role="button"],
+  input,
+  select,
+  textarea {
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    font-size: 20px;
+  }
+}
+
+/* Safe area insets for tablets with notches */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Landscape tablet optimization */
+@media (min-width: 768px) and (orientation: landscape) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+}
+
+/* Custom scrollbar for ATM screens */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3a3a4a;
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4a4a5a;
+}
+
+
+/* Scan notification animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}

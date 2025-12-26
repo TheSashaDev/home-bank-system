@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.apk
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Android
+android-webview/.gradle/
+android-webview/app/build/
+android-webview/local.properties
+android-scanner/.gradle/
+android-scanner/app/build/
+android-scanner/local.properties
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
