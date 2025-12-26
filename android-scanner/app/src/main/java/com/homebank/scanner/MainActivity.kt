@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -44,11 +45,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
+        // Keep screen on 24/7
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        
         previewView = findViewById(R.id.previewView)
         statusText = findViewById(R.id.statusText)
         lastScanText = findViewById(R.id.lastScanText)
         
-        toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
+        // Max volume for notification sounds
+        toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
         
         cameraExecutor = Executors.newSingleThreadExecutor()
         
@@ -148,11 +153,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSuccess() {
-        toneGenerator?.startTone(ToneGenerator.TONE_PROP_ACK, 200)
+        // Play longer, louder success tone
+        toneGenerator?.startTone(ToneGenerator.TONE_PROP_ACK, 500)
     }
 
     private fun playError() {
-        toneGenerator?.startTone(ToneGenerator.TONE_PROP_NACK, 300)
+        // Play longer error tone
+        toneGenerator?.startTone(ToneGenerator.TONE_PROP_NACK, 500)
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {

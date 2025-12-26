@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAppStore } from './store/appStore'
 import { useScannerSocket } from './hooks/useScannerSocket'
-import { ScanNotification } from './components/ui/ScanNotification'
 import {
   ScanScreen,
   PinScreen,
@@ -71,22 +70,19 @@ function App() {
   }
 
   return (
-    <>
-      <ScanNotification />
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentScreen}
-          variants={screenVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={screenTransition}
-          className="min-h-screen"
-        >
-          {renderScreen()}
-        </motion.div>
-      </AnimatePresence>
-    </>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentScreen}
+        variants={screenVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={screenTransition}
+        className="min-h-screen"
+      >
+        {renderScreen()}
+      </motion.div>
+    </AnimatePresence>
   )
 }
 
