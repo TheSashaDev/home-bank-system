@@ -1,51 +1,43 @@
 # Home Bank System
 
-A full-stack banking-style demo system with a web client, backend server, and Android QR/scanner module.
+## English
+Home Bank System is a portfolio/demo project kept public to show project structure, tooling, and implementation approach. It includes real source files and is documented as a practical learning/portfolio repository.
 
-> Repository name is still `literate-pancake`, but the actual project is organized as **Home Bank**.
+### Highlights
+- Clear project structure.
+- Source code organized by module.
+- Development-oriented configuration.
+- README and screenshots included for quick review.
 
-## Features
+### Screenshots
+![Screenshot 1](docs/screenshots/01-overview.png)
+![Screenshot 2](docs/screenshots/02-details.png)
+![Screenshot 3](docs/screenshots/03-structure.png)
 
-- Web client built with TypeScript/React-style components
-- Backend server workspace
-- Android scanner module
-- Admin QR page
-- GitHub Actions workflow for Android build
-- Monorepo layout with npm workspaces
+## Русский
+Home Bank System — portfolio/demo-проект, оставленный публичным для демонстрации структуры, tooling и подхода к реализации. Репозиторий содержит реальный исходный код и оформлен как практический учебный/портфолио-проект.
 
-## Project structure
+### Главное
+- Понятная структура проекта.
+- Код разделён по модулям.
+- Конфигурация для разработки.
+- README и скриншоты для быстрого просмотра.
 
-```text
-.
-├── client/            # Web client
-├── server/            # Backend server
-├── android-scanner/   # Android scanner app
-├── android-webview/   # Android WebView module
-├── admin-qr.html      # QR/admin helper page
-└── package.json       # Root workspace scripts
-```
+### Скриншоты
+![Screenshot 1](docs/screenshots/01-overview.png)
+![Screenshot 2](docs/screenshots/02-details.png)
+![Screenshot 3](docs/screenshots/03-structure.png)
 
-## Getting started
+## Українська
+Home Bank System — portfolio/demo-проєкт, залишений публічним для демонстрації структури, tooling та підходу до реалізації. Репозиторій містить реальний вихідний код і оформлений як практичний навчальний/портфоліо-проєкт.
 
-```bash
-npm install
-npm run dev
-```
+### Головне
+- Зрозуміла структура проєкту.
+- Код розділений за модулями.
+- Конфігурація для розробки.
+- README та скріншоти для швидкого перегляду.
 
-Run individual workspaces:
-
-```bash
-npm run dev:client
-npm run dev:server
-```
-
-## Scripts
-
-```bash
-npm run build
-npm run test
-```
-
-## Notes
-
-This is a portfolio/demo project. Before production use, review authentication, validation, storage, and deployment security.
+### Скріншоти
+![Screenshot 1](docs/screenshots/01-overview.png)
+![Screenshot 2](docs/screenshots/02-details.png)
+![Screenshot 3](docs/screenshots/03-structure.png)
